@@ -66,6 +66,13 @@ int main() {
     printf("\nBoolean works: ");
 		CLIBX_PRINT_BOOL(flag);
 
+    // TYPE HELPERS
+    int value = 5;
+    TYPE_NAME(value) same_type_value = value;
+    printf("Type of value: %s\n", TYPE_STR(value));
+    printf("Same-type value: %d\n", same_type_value);
+    printf("Type function info: %s\n", TYPE_FUNC(value));
+
     // STRING (STREQ)
     if (STREQ("hello", "hello")) {
         printf("Strings are equal\n");

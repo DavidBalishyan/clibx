@@ -102,4 +102,19 @@ static inline void read_line(char *buffer, size_t size) {
     }
 }
 
-#endif // CLIBX_H
+// Wrapper around __typeof__ to get the type of an expression as a type
+#define TYPE_NAME(x) __typeof__(x)
+
+// Wrapper around _Generic to get the type name as a string
+#define TYPE_STR(x) _Generic((x), \
+    int: "int", \
+    long: "long", \
+    float: "float", \
+    double: "double", \
+    char: "char", \
+    default: "unknown by the TYPE_STR macro")
+
+// Get the function signature of an expression's type (for debugging)
+#define TYPE_FUNC(x) _Generic((x), default: __PRETTY_FUNCTION__)
+
+#endif /* CLIBX_H */

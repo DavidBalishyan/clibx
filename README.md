@@ -8,7 +8,7 @@ A small, header-only C utility library with common macros and helper functions d
 - [clibx.h - Main Library](#clibxh---main-library)
 - [clibx_print.h - Optional Standalone Printf](#clibx_printh---optional-standalone-printf)
 - [Files](#files)
-- [Build & Run](#build--run)
+- [Build & Run the demos](#build--run-the-demos)
 
 ## Overview
 
@@ -151,6 +151,41 @@ Compare two strings for equality (wrapper around `strcmp`).
 if (STREQ(command, "quit")) {
     exit(0);
 }
+```
+
+### Type Helpers
+
+#### `TYPE_NAME(x)`
+Expands to the type of the expression `x` using `__typeof__`. This is useful for declaring variables with the same type as a given expression.
+
+```c
+int value = 5;
+TYPE_NAME(value) copy = value; // copy has the same type as value
+```
+
+#### `TYPE_STR(x)`
+Returns a string describing the type of `x` for a small set of built-in types.
+
+Supported types:
+- `int`
+- `long`
+- `float`
+- `double`
+- `char`
+
+```c
+int value = 5;
+printf("Type of value: %s\n", TYPE_STR(value));
+// Output: Type of value: int
+```
+
+#### `TYPE_FUNC(x)`
+Returns the compiler's pretty function signature for the expression type. This is useful for debugging and inspecting the type category of a variable or expression.
+
+```c
+int value = 5;
+printf("Function type: %s\n", TYPE_FUNC(value));
+// Output: Function type: const char* main() [with int = int]
 ```
 
 ### Input/Output
