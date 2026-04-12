@@ -86,6 +86,8 @@ static inline void print_char_array(const char *arr, size_t len) {
     #endif
 #endif
 
+#define CLIBX_PRINT_BOOL(boolean) (boolean == 1 ? printf("true\n") : printf("false\n"))
+
 // checks if two strings are equal.
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
 

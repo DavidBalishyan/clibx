@@ -63,9 +63,8 @@ int main() {
 
     // BOOLEAN
     clibx_bool flag = clibx_true;
-    if (flag) {
-        printf("\nBoolean works: true\n");
-    }
+    printf("\nBoolean works: ");
+		CLIBX_PRINT_BOOL(flag);
 
     // STRING (STREQ)
     if (STREQ("hello", "hello")) {
