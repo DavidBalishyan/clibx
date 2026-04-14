@@ -217,4 +217,4 @@ static void clibx_fprintf(int fd, const char *fmt, ...) {
     va_end(args);
 }
 
-#endif // CLIBX_PRINT_H
+#endif /* CLIBX_PRINT_H */

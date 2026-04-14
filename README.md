@@ -14,6 +14,8 @@ A small, header-only C utility library with common macros and helper functions d
 
 **clibx** provides lightweight, macro-based utilities for common C programming patterns, reducing boilerplate and improving code readability. Everything is header-only with zero dependencies beyond the C standard library.
 
+> **Portability note:** Most of `clibx.h` is standard C11. Features inside the `#ifdef __GNUC__` block (`SWAP`, `LIKELY`, `UNLIKELY`, `DEPRECATED`, `NODISCARD`, `TYPE_NAME`, `TYPE_FUNC`) require GCC or Clang. Safe no-op fallbacks are provided for other compilers.
+
 ## clibx.h - Main Library
 
 ### Array Operations
@@ -31,6 +33,8 @@ print_int_array(arr, len);     // Output: [1, 2, 3, 4, 5]
 - `print_int_array(arr, len)` - Print integer arrays with comma-separated formatting
 - `print_double_array(arr, len)` - Print floating-point arrays
 - `print_char_array(arr, len)` - Print character arrays with quotes
+
+---
 
 ### Math Operations
 
@@ -57,10 +61,35 @@ Get the absolute value of a number.
 int result = ABS(-42);  // result = 42
 ```
 
+#### `LERP(v0, v1, t)`
+Linear interpolation between two values. `t` should be in the range `[0.0, 1.0]`.
+
+```c
+double result = LERP(0.0, 100.0, 0.25);  // result = 25.0
+```
+
+#### `IS_POWER_OF_2(n)`
+Check whether an integer is a power of two. Returns non-zero if true.
+
+```c
+IS_POWER_OF_2(8);   // true
+IS_POWER_OF_2(6);   // false
+```
+
+#### `NEXT_POWER_OF_2(n)`
+Return the next power of two strictly greater than `n`. Requires `<math.h>`.
+
+```c
+NEXT_POWER_OF_2(5);   // 8
+NEXT_POWER_OF_2(8);   // 16
+```
+
+---
+
 ### Variable Operations
 
-#### `SWAP(a, b)`
-Exchange the values of two variables. Type-safe using `__typeof__`.
+#### `SWAP(a, b)` *(GCC/Clang only)*
+Exchange the values of two variables. Type-safe using `__typeof__`. Falls back to a `memcpy`-based swap on other compilers.
 
 ```c
 int a = 10, b = 20;
@@ -68,16 +97,15 @@ SWAP(a, b);
 // Now: a = 20, b = 10
 ```
 
+---
+
 ### Memory Management
 
 #### `NEW(type)`
-Safely allocate memory for a single variable with error checking.
+Allocate memory for a single variable.
 
 ```c
 int *ptr = NEW(int);
-if (!ptr) {
-    ERROR("Memory allocation failed");
-}
 *ptr = 99;
 FREE(ptr);
 ```
@@ -87,11 +115,15 @@ Allocate memory for an array.
 
 ```c
 int *arr = NEW_ARRAY(int, 100);
-if (!arr) {
-    ERROR("Array allocation failed");
-}
-// Use arr...
 FREE(arr);  // Sets arr to NULL after freeing
+```
+
+#### `NEW_ZEROED(type)`
+Allocate and zero-initialise memory for a single variable using `calloc`.
+
+```c
+int *ptr = NEW_ZEROED(int);  // *ptr == 0 guaranteed
+FREE(ptr);
 ```
 
 #### `FREE(ptr)`
@@ -101,10 +133,12 @@ Safe free that prevents dangling pointers by setting the pointer to `NULL`.
 FREE(ptr);  // Frees memory and sets ptr to NULL
 ```
 
-### Logging & Error Handling
+---
+
+### Logging, Errors & Assertions
 
 #### `LOG(fmt, ...)`
-Print colored log messages to stderr.
+Print a colored log message to stderr.
 
 ```c
 LOG("Starting process with value: %d", value);
@@ -121,6 +155,35 @@ if (count < 0) {
 // Output: [ERROR] main.c:42: Invalid count: -5
 // Program exits with EXIT_FAILURE
 ```
+
+#### `ASSERT(cond, msg)`
+Check a condition at runtime; calls `ERROR` with the message if it fails.
+
+```c
+ASSERT(ptr != NULL, "pointer must not be NULL");
+```
+
+#### `UNIMPLEMENTED()`
+Mark a code path as not yet implemented. Calls `ERROR` and exits.
+
+```c
+void todo_feature(void) {
+    UNIMPLEMENTED();
+}
+```
+
+#### `UNREACHABLE()`
+Mark a code path that should never be reached. Useful in `switch` default branches.
+
+```c
+switch (state) {
+    case A: ...; break;
+    case B: ...; break;
+    default: UNREACHABLE();
+}
+```
+
+---
 
 ### Loop Helpers
 
@@ -142,6 +205,8 @@ FOR_RANGE(i, 5, 10) {
 }
 ```
 
+---
+
 ### String Operations
 
 #### `STREQ(a, b)`
@@ -153,40 +218,106 @@ if (STREQ(command, "quit")) {
 }
 ```
 
+#### `STR_EMPTY(s)`
+Check if a string is empty (i.e. its first character is `'\0'`).
+
+```c
+if (STR_EMPTY(buffer)) {
+    LOG("Nothing was entered.");
+}
+```
+
+#### `STR_STARTS_WITH(s, prefix)`
+Check if string `s` begins with `prefix`.
+
+```c
+if (STR_STARTS_WITH(path, "/usr")) {
+    LOG("System path detected.");
+}
+```
+
+---
+
+### Compiler Hints *(GCC/Clang only)*
+
+#### `LIKELY(x)` / `UNLIKELY(x)`
+Hint to the compiler about branch probability, mapping to `__builtin_expect`. Falls back to a plain identity on other compilers.
+
+```c
+if (LIKELY(ptr != NULL)) {
+    // fast path
+}
+if (UNLIKELY(err != 0)) {
+    ERROR("Unexpected error: %d", err);
+}
+```
+
+#### `UNUSED(x)`
+Suppress unused-variable warnings. Works on all compilers (expands to `(void)(x)`).
+
+```c
+void callback(int UNUSED(unused_param)) { }
+```
+
+#### `DEPRECATED` *(GCC/Clang only)*
+Mark a function as deprecated so callers get a compile-time warning.
+
+```c
+DEPRECATED void old_api(void);
+```
+
+#### `NODISCARD` *(GCC/Clang only)*
+Warn if the return value of a function is ignored.
+
+```c
+NODISCARD int important_result(void);
+```
+
+---
+
 ### Type Helpers
 
-#### `TYPE_NAME(x)`
-Expands to the type of the expression `x` using `__typeof__`. This is useful for declaring variables with the same type as a given expression.
+#### `TYPE_NAME(x)` *(GCC/Clang only)*
+Expands to the type of expression `x` using `__typeof__`. Useful for declaring variables with the same type as a given expression.
 
 ```c
 int value = 5;
-TYPE_NAME(value) copy = value; // copy has the same type as value
+TYPE_NAME(value) copy = value;  // copy has the same type as value
 ```
 
 #### `TYPE_STR(x)`
-Returns a string describing the type of `x` for a small set of built-in types.
+Returns a string describing the type of `x` for a set of built-in types.
 
-Supported types:
-- `int`
-- `long`
-- `float`
-- `double`
-- `char`
+Supported types: `int`, `long`, `float`, `double`, `char`.
 
 ```c
 int value = 5;
-printf("Type of value: %s\n", TYPE_STR(value));
-// Output: Type of value: int
+printf("Type: %s\n", TYPE_STR(value));  // Output: Type: int
 ```
 
-#### `TYPE_FUNC(x)`
-Returns the compiler's pretty function signature for the expression type. This is useful for debugging and inspecting the type category of a variable or expression.
+#### `TYPE_FUNC(x)` *(GCC/Clang only)*
+Returns the compiler's pretty function signature for debugging.
 
 ```c
 int value = 5;
-printf("Function type: %s\n", TYPE_FUNC(value));
-// Output: Function type: const char* main() [with int = int]
+printf("%s\n", TYPE_FUNC(value));
+// Output: const char* main() [with int = int]
 ```
+
+#### `PRINT(x)`
+Print a variable to stdout with an automatic newline. Uses `_Generic` to dispatch to the correct format specifier.
+
+Supported types: `int`, `long`, `float`, `double`, `char`, `char*`.
+
+```c
+int n = 42;
+PRINT(n);         // Output: 42
+
+char *s = "hi";
+PRINT(s);         // Output: hi
+```
+
+---
 
 ### Input/Output
 
@@ -199,6 +330,8 @@ printf("Enter your name: ");
 read_line(buffer, sizeof(buffer));
 printf("Hello, %s!\n", buffer);
 ```
+
+---
 
 ### Boolean Support
 
@@ -216,7 +349,7 @@ CLIBX_PRINT_BOOL(flag);  // Output: true
 
 ## clibx_print.h - Optional Standalone Printf
 
-**clibx_print.h** is a completely standalone, optional module that provides a minimal `printf` implementation using Linux x86-64 syscalls directly. It does **not** depend on `libc`'s stdio, making it lightweight for minimal environments or educational purposes.
+**clibx_print.h** is a completely standalone, optional module that provides a minimal `printf` implementation using Linux x86_64 syscalls directly. It does **not** depend on `libc`'s stdio, making it lightweight for minimal environments or educational purposes.
 
 **Note:** This module is independent and can be used without `clibx.h`.
 
@@ -233,17 +366,17 @@ This is useful when:
 #### `clibx_printf(fmt, ...)`
 Printf-style output to stdout. Supports the following format specifiers:
 
-|  Specifier | Type                                 | Example                                     |
-|------------|--------------------------------------|---------------------------------------------|
-| `%d`, `%i` | Signed decimal integer               | `clibx_printf("%d\n", -42);`-> `-42`        |
-| `%u`       | Unsigned decimal integer             | `clibx_printf("%u\n", 42);`-> `42`          |
-| `%o`       | Unsigned octal                       | `clibx_printf("%o\n", 82);`-> `122`         |
-| `%x`       | Unsigned hexadecimal (lowercase)     | `clibx_printf("%x\n", 255);`-> `ff`         |
-| `%X`       | Unsigned hexadecimal (uppercase)     | `clibx_printf("%X\n", 255);`-> `FF`         |
-| `%p`       | Pointer address (hex with 0x prefix) | `clibx_printf("%p\n", ptr);`-> `0xdeadbeef` |
-| `%s`       | String                               | `clibx_printf("%s\n", "hello");`-> `hello`  |
-| `%c`       | Character                            | `clibx_printf("%c\n", 'A');`-> `A`          |
-| `%%`       | Literal percent                      | `clibx_printf("100%%\n");`-> `100%`         |
+| Specifier  | Type                                 | Example                                      |
+|------------|--------------------------------------|----------------------------------------------|
+| `%d`, `%i` | Signed decimal integer               | `clibx_printf("%d\n", -42);` -> `-42`         |
+| `%u`       | Unsigned decimal integer             | `clibx_printf("%u\n", 42);` -> `42`           |
+| `%o`       | Unsigned octal                       | `clibx_printf("%o\n", 82);` -> `122`          |
+| `%x`       | Unsigned hexadecimal (lowercase)     | `clibx_printf("%x\n", 255);` -> `ff`          |
+| `%X`       | Unsigned hexadecimal (uppercase)     | `clibx_printf("%X\n", 255);` -> `FF`          |
+| `%p`       | Pointer address (hex with 0x prefix) | `clibx_printf("%p\n", ptr);` -> `0xdeadbeef`  |
+| `%s`       | String                               | `clibx_printf("%s\n", "hello");` -> `hello`   |
+| `%c`       | Character                            | `clibx_printf("%c\n", 'A');` -> `A`           |
+| `%%`       | Literal percent                      | `clibx_printf("100%%\n");` -> `100%`          |
 
 ```c
 #include "clibx_print.h"
@@ -308,9 +441,11 @@ clibx_fprintf(1, "Result: 0x%X\n", 0x1234);                               // fd 
 Use a standard C compiler such as `gcc`:
 
 ```bash
-gcc main.demo.c -o main_demo
+gcc main.demo.c -o main_demo -lm
 gcc print.demo.c -o print_demo
 ```
+>[!NOTE]
+> The `-lm` flag is required for `NEXT_POWER_OF_2`, which uses `<math.h>`.
 
 ### Run
 
@@ -323,15 +458,18 @@ gcc print.demo.c -o print_demo
 
 The example program demonstrates:
 - Array operations and printing
-- Math macros (MIN, MAX, CLAMP, ABS)
-- Variable swapping and memory allocation
-- Loop helpers and string operations
+- Math macros (`MIN`, `MAX`, `CLAMP`, `ABS`, `LERP`, `IS_POWER_OF_2`, `NEXT_POWER_OF_2`)
+- Variable swapping and memory allocation (`NEW`, `NEW_ZEROED`, `FREE`)
+- Loop helpers and string operations (`STREQ`, `STR_EMPTY`, `STR_STARTS_WITH`)
 - User input with `read_line`
-- Logging and error handling
+- Logging, assertions, and error handling (`LOG`, `ERROR`, `ASSERT`, `UNIMPLEMENTED`, `UNREACHABLE`)
+- Type introspection and generic printing (`TYPE_STR`, `PRINT`)
+- Compiler hints (`LIKELY`, `UNLIKELY`, `UNUSED`, `DEPRECATED`, `NODISCARD`)
 
 ## Notes
 
 - Both `clibx.h` and `clibx_print.h` are header-only with no separate compilation needed
 - `clibx_print.h` is completely optional and can be used independently
+- GCC/Clang-specific features are guarded with `#ifdef __GNUC__`; portable fallbacks are provided
 - This project is intended as a toolkit for small CLI utilities and as a teaching example for macro-based helpers in C
 - Fully portable except for `clibx_print.h`, which requires x86_64 Linux
