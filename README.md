@@ -17,6 +17,19 @@ A small, header-only C utility library with common macros and helper functions d
 > **Portability note:** Most of `clibx.h` is standard C11. Features inside the `#ifdef __GNUC__` block (`SWAP`, `LIKELY`, `UNLIKELY`, `DEPRECATED`, `NODISCARD`, `TYPE_NAME`, `TYPE_FUNC`) require GCC or Clang. Safe no-op fallbacks are provided for other compilers.
 
 ## clibx.h - Main Library
+### Installation 
+#### Option 1 - wget or curl
+```bash
+wget https://raw.githubusercontent.com/DavidBalishyan/clibx/refs/heads/main/clibx.h
+```
+#### Option 2 - clone the repository
+```bash
+git clone https://github.com/DavidBalishyan/clibx.git
+# Copy the clibx.h file wherever you want
+```
+---
+#### `str`
+An alias over char* to improve DX and code readability
 
 ### Array Operations
 
