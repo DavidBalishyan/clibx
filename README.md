@@ -451,22 +451,19 @@ clibx_fprintf(1, "Result: 0x%X\n", 0x1234);                               // fd 
 
 ### Build
 
-Use a standard C compiler such as `gcc`:
+Use the Makefile:
 
 ```bash
-gcc main.demo.c -o main_demo -lm
-gcc print.demo.c -o print_demo
+make
 ```
->[!NOTE]
-> The `-lm` flag is required for `NEXT_POWER_OF_2`, which uses `<math.h>`.
 
 ### Run
 
 ```bash
 # to run the main demo
-./main_demo
+./bin/main.demo
 # to run the demo of clibx_print.h
-./print_demo
+./bin/print.demo
 ```
 
 The example program demonstrates:
