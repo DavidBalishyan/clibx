@@ -135,7 +135,7 @@ static inline void print_char_array(const char *arr, size_t len) {
  * LERP (Linear Interpolation)
  * --------------------------------------
  * Interpolates between v0 and v1 using parameter t.
- * t = 0 → v0, t = 1 → v1
+ * t = 0 -> v0, t = 1 -> v1
  * --------------------------------------
  * Complexity: O(1)
  * */
@@ -303,8 +303,8 @@ static inline void print_char_array(const char *arr, size_t len) {
  * --------------------------------------
  * Simplified loop macros.
  * --------------------------------------
- * FOR(i, n):         0 → n-1
- * FOR_RANGE(i,a,b):  a → b-1
+ * FOR(i, n):         0 -> n-1
+ * FOR_RANGE(i,a,b):  a -> b-1
  * */
 #define FOR(i, n)                for (size_t i = 0; i < (n); i++)
 #define FOR_RANGE(i, start, end) for (size_t i = (start); i < (end); i++)
