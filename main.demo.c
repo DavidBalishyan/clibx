@@ -77,6 +77,18 @@ int main() {
     ASSERT(positive > 0, "positive must be > 0");
     printf("ASSERT passed for positive=%d\n\n", positive);
 
+    // BITWISE OPERATIONS
+    int flags = 0;
+    SET_BIT(flags, 0); // flags = 1
+    SET_BIT(flags, 2); // flags = 5
+    printf("BITWISE: SET_BIT 0 and 2 -> flags = %d\n", flags);
+    printf("BITWISE: CHECK_BIT 2 -> %s\n", CHECK_BIT(flags, 2) ? "true" : "false");
+    printf("BITWISE: CHECK_BIT 1 -> %s\n", CHECK_BIT(flags, 1) ? "true" : "false");
+    TOGGLE_BIT(flags, 1); // flags = 7
+    printf("BITWISE: TOGGLE_BIT 1 -> flags = %d\n", flags);
+    CLEAR_BIT(flags, 0); // flags = 6
+    printf("BITWISE: CLEAR_BIT 0 -> flags = %d\n\n", flags);
+
     // LOOP HELPERS
     printf("FOR loop:\n");
     FOR(i, 3) printf("  i = %zu\n", i);

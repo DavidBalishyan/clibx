@@ -99,6 +99,36 @@ NEXT_POWER_OF_2(8);   // 16
 
 ---
 
+### Bitwise Operations
+
+#### `BIT(x)`
+Returns a 64-bit integer with the `x`-th bit set to 1.
+
+```c
+unsigned long long mask = BIT(3); // 8 (0b1000)
+```
+
+#### `SET_BIT(val, pos)` / `CLEAR_BIT(val, pos)` / `TOGGLE_BIT(val, pos)`
+Modifies the specified bit position in `val` in-place.
+
+```c
+int flags = 0;
+SET_BIT(flags, 2);    // flags = 4
+CLEAR_BIT(flags, 2);  // flags = 0
+TOGGLE_BIT(flags, 1); // flags = 2
+```
+
+#### `CHECK_BIT(val, pos)`
+Returns true (non-zero) if the bit at `pos` is set, and false (0) otherwise.
+
+```c
+if (CHECK_BIT(flags, 1)) {
+    // Bit 1 is set
+}
+```
+
+---
+
 ### Variable Operations
 
 #### `SWAP(a, b)` *(GCC/Clang only)*
@@ -469,6 +499,7 @@ make
 The example program demonstrates:
 - Array operations and printing
 - Math macros (`MIN`, `MAX`, `CLAMP`, `ABS`, `LERP`, `IS_POWER_OF_2`, `NEXT_POWER_OF_2`)
+- Bitwise macros (`BIT`, `SET_BIT`, `CLEAR_BIT`, `TOGGLE_BIT`, `CHECK_BIT`)
 - Variable swapping and memory allocation (`NEW`, `NEW_ZEROED`, `FREE`)
 - Loop helpers and string operations (`STREQ`, `STR_EMPTY`, `STR_STARTS_WITH`)
 - User input with `read_line`

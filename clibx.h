@@ -310,6 +310,23 @@ static inline void print_char_array(const char *arr, size_t len) {
 #define FOR_RANGE(i, start, end) for (size_t i = (start); i < (end); i++)
 
 //
+// Bitwise operations
+//
+
+/*
+ * BIT / SET_BIT / CLEAR_BIT / TOGGLE_BIT / CHECK_BIT
+ * --------------------------------------
+ * Bit manipulation macros.
+ * --------------------------------------
+ * Complexity: O(1)
+ * */
+#define BIT(x) (1ULL << (x))
+#define SET_BIT(val, pos)   ((val) |= BIT(pos))
+#define CLEAR_BIT(val, pos) ((val) &= ~BIT(pos))
+#define TOGGLE_BIT(val, pos) ((val) ^= BIT(pos))
+#define CHECK_BIT(val, pos) (((val) & BIT(pos)) != 0)
+
+//
 // Boolean helpers
 //
 
