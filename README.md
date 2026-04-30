@@ -6,6 +6,22 @@ A small, header-only C utility library with common macros and helper functions d
 
 - [Overview](#overview)
 - [clibx.h - Main Library](#clibxh---main-library)
+  - [String type](#str)
+  - [Array Operations](#array-operations)
+  - [Math Operations](#math-operations)
+  - [Bitwise Operations](#bitwise-operations)
+  - [Variable Operations](#variable-operations)
+  - [Memory Management](#memory-management)
+  - [Loop Helpers](#loop-helpers)
+  - [Compiler Hints](#compiler-hints-gccclang-only)
+  - [Type Helpers](#type-helpers)
+  - [Logging, Errors & Assertions](#logging-errors--assertions)
+  - [Boolean Support](#boolean-support)
+  - [String Operations](#string-operations)
+  - [Dynamic Array (Vec)](#dynamic-array-vec)
+  - [Path Utilities](#path-utilities)
+  - [Hash Map](#hash-map)
+  - [Input/Output](#inputoutput)
 - [clibx_print.h - Optional Standalone Printf](#clibx_printh---optional-standalone-printf)
 - [Files](#files)
 - [Build & Run the demos](#build--run-the-demos)
@@ -13,6 +29,20 @@ A small, header-only C utility library with common macros and helper functions d
 ## Overview
 
 **clibx** provides lightweight, macro-based utilities for common C programming patterns, reducing boilerplate and improving code readability. Everything is header-only with zero dependencies beyond the C standard library.
+
+Features include:
+- Array helpers and printing utilities
+- Math macros (`MIN`, `MAX`, `CLAMP`, `ABS`, `LERP`, power-of-2 checks)
+- Memory allocation helpers (`NEW`, `NEW_ARRAY`, `NEW_ZEROED`, `FREE`)
+- Bitwise operations (`BIT`, `SET_BIT`, `CLEAR_BIT`, `TOGGLE_BIT`, `CHECK_BIT`)
+- Dynamic string vector (`str_vec`)
+- String operations (trim, split, join, case conversion)
+- Path utilities (basename, dirname, extension, join, exists, size)
+- String-to-string hash map
+- Loop helpers (`FOR`, `FOR_RANGE`)
+- Logging, assertions, and error handling
+- Type introspection (`TYPE_STR`, `PRINT`, `TYPE_NAME`)
+- Compiler hints (`LIKELY`, `UNLIKELY`, `UNUSED`, `DEPRECATED`, `NODISCARD`)
 
 > **Portability note:** Most of `clibx.h` is standard C11. Features inside the `#ifdef __GNUC__` block (`SWAP`, `LIKELY`, `UNLIKELY`, `DEPRECATED`, `NODISCARD`, `TYPE_NAME`, `TYPE_FUNC`) require GCC or Clang. Safe no-op fallbacks are provided for other compilers.
 
@@ -279,6 +309,57 @@ if (STR_STARTS_WITH(path, "/usr")) {
 }
 ```
 
+#### `STR_CONTAINS(haystack, needle)`
+Check if `haystack` contains `needle` (wrapper around `strstr`).
+
+```c
+if (STR_CONTAINS(filename, ".txt")) {
+    LOG("Text file detected.");
+}
+```
+
+#### `strtrim(s)`
+Returns a newly allocated string with leading and trailing whitespace removed. Caller must free the result.
+
+```c
+str original = "  hello world  ";
+str trimmed = strtrim(original);
+printf("%s\n", trimmed);  // Output: "hello world"
+FREE(trimmed);
+```
+
+#### `strsplit(input, delim)`
+Splits a string by delimiter into a `str_vec`. Caller must free the vector and individual strings.
+
+```c
+str_vec parts = strsplit("one,two,three", ',');
+FOR(i, parts.length) {
+    printf("%s\n", parts.data[i]);
+    FREE(parts.data[i]);
+}
+vec_free(&parts);
+```
+
+#### `strjoin(arr, len, sep)`
+Joins an array of strings with a separator. Returns a newly allocated string. Caller must free.
+
+```c
+str items[] = {"apple", "banana", "cherry"};
+str result = strjoin(items, 3, ", ");
+printf("%s\n", result);  // Output: "apple, banana, cherry"
+FREE(result);
+```
+
+#### `str_to_lower(s)` / `str_to_upper(s)`
+Converts string to lowercase or uppercase in place. Returns the same pointer.
+
+```c
+str text = strdup("Hello World");
+str_to_lower(text);  // text is now "hello world"
+str_to_upper(text);  // text is now "HELLO WORLD"
+FREE(text);
+```
+
 ---
 
 ### Compiler Hints *(GCC/Clang only)*
@@ -358,6 +439,167 @@ PRINT(n);         // Output: 42
 
 char *s = "hi";
 PRINT(s);         // Output: hi
+```
+
+---
+
+### Dynamic Array (Vec)
+
+#### `str_vec`
+A dynamic array type for storing strings (`str*`).
+
+```c
+typedef struct {
+    str *data;
+    size_t length;
+    size_t capacity;
+} str_vec;
+```
+
+#### `vec_init()`
+Initialize an empty string vector.
+
+```c
+str_vec vec = vec_init();
+```
+
+#### `vec_push(vec, value)`
+Append a string to the vector. Automatically doubles capacity when full (starts at 8).
+
+```c
+str_vec vec = vec_init();
+vec_push(&vec, "hello");
+vec_push(&vec, "world");
+```
+
+#### `vec_free(vec)`
+Free the vector's internal data buffer. Does NOT free individual strings.
+
+```c
+vec_free(&vec);
+```
+
+---
+
+### Path Utilities
+
+#### `path_basename(path)`
+Returns the filename component of a path. Caller must free.
+
+```c
+str base = path_basename("/usr/local/bin/foo");
+printf("%s\n", base);  // Output: "foo"
+FREE(base);
+```
+
+#### `path_dirname(path)`
+Returns the directory component of a path. Caller must free.
+
+```c
+str dir = path_dirname("/usr/local/bin/foo");
+printf("%s\n", dir);  // Output: "/usr/local/bin"
+FREE(dir);
+```
+
+#### `path_extension(path)`
+Returns the file extension without the dot, or empty string. Caller must free.
+
+```c
+str ext = path_extension("file.txt");
+printf("%s\n", ext);  // Output: "txt"
+FREE(ext);
+```
+
+#### `path_join(a, b)`
+Joins two path components with `/`. Returns a newly allocated string. Caller must free.
+
+```c
+str full = path_join("/usr/local", "bin");
+printf("%s\n", full);  // Output: "/usr/local/bin"
+FREE(full);
+```
+
+#### `path_exists(path)`
+Checks if a path exists on disk.
+
+```c
+if (path_exists("/etc/passwd")) {
+    LOG("File exists");
+}
+```
+
+#### `path_is_dir(path)` / `path_is_file(path)`
+Checks if a path is a directory or regular file.
+
+```c
+if (path_is_dir("/usr")) {
+    LOG("It's a directory");
+}
+if (path_is_file("/etc/passwd")) {
+    LOG("It's a file");
+}
+```
+
+#### `path_file_size(path)`
+Returns file size in bytes, or -1 on error.
+
+```c
+long size = path_file_size("data.txt");
+printf("Size: %ld bytes\n", size);
+```
+
+---
+
+### Hash Map
+
+#### `clibx_hashmap`
+A string-to-string hash map using DJB2 hashing with chaining.
+
+```c
+typedef struct {
+    clibx_hashmap_entry **buckets;
+    size_t capacity;
+    size_t count;
+} clibx_hashmap;
+```
+
+#### `hashmap_init()`
+Create a new empty hashmap (default capacity: 64).
+
+```c
+clibx_hashmap map = hashmap_init();
+```
+
+#### `hashmap_put(map, key, value)`
+Insert or update a key-value pair.
+
+```c
+hashmap_put(&map, "name", "Alice");
+hashmap_put(&map, "age", "30");
+```
+
+#### `hashmap_get(map, key)`
+Get value by key. Returns NULL if not found.
+
+```c
+str name = hashmap_get(&map, "name");
+printf("%s\n", name);  // Output: "Alice"
+```
+
+#### `hashmap_contains(map, key)`
+Check if key exists in hashmap.
+
+```c
+if (hashmap_contains(&map, "name")) {
+    LOG("Name is set");
+}
+```
+
+#### `hashmap_free(map)`
+Free all memory used by the hashmap.
+
+```c
+hashmap_free(&map);
 ```
 
 ---
@@ -501,7 +743,10 @@ The example program demonstrates:
 - Math macros (`MIN`, `MAX`, `CLAMP`, `ABS`, `LERP`, `IS_POWER_OF_2`, `NEXT_POWER_OF_2`)
 - Bitwise macros (`BIT`, `SET_BIT`, `CLEAR_BIT`, `TOGGLE_BIT`, `CHECK_BIT`)
 - Variable swapping and memory allocation (`NEW`, `NEW_ZEROED`, `FREE`)
-- Loop helpers and string operations (`STREQ`, `STR_EMPTY`, `STR_STARTS_WITH`)
+- Loop helpers and string operations (`STREQ`, `STR_EMPTY`, `STR_STARTS_WITH`, `STR_CONTAINS`, `strtrim`, `strsplit`, `strjoin`, `str_to_lower`, `str_to_upper`)
+- Dynamic string vector (`str_vec`, `vec_init`, `vec_push`, `vec_free`)
+- Path utilities (`path_basename`, `path_dirname`, `path_extension`, `path_join`, `path_exists`, `path_is_dir`, `path_is_file`, `path_file_size`)
+- Hash map (`hashmap_init`, `hashmap_put`, `hashmap_get`, `hashmap_contains`, `hashmap_free`)
 - User input with `read_line`
 - Logging, assertions, and error handling (`LOG`, `ERROR`, `ASSERT`, `UNIMPLEMENTED`, `UNREACHABLE`)
 - Type introspection and generic printing (`TYPE_STR`, `PRINT`)
@@ -509,8 +754,9 @@ The example program demonstrates:
 
 ## Notes
 
-- Both `clibx.h` and `clibx_print.h` are header-only with no separate compilation needed
+- `clibx.h` is header-only with no separate compilation needed
 - `clibx_print.h` is completely optional and can be used independently
 - GCC/Clang-specific features are guarded with `#ifdef __GNUC__`; portable fallbacks are provided
+- Path utilities use POSIX functions (`access`, `stat`, `basename`, `dirname`) and work on Unix-like systems
+- `clibx_print.h` requires x86_64 Linux (uses inline assembly for syscalls)
 - This project is intended as a toolkit for small CLI utilities and as a teaching example for macro-based helpers in C
-- Fully portable except for `clibx_print.h`, which requires x86_64 Linux
