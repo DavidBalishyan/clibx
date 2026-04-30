@@ -127,9 +127,92 @@ int main() {
 
     printf("STR_EMPTY: \"%s\" -> %s\n", s3, STR_EMPTY(s3) ? "true" : "false");
 
-    str path = "/usr/local/bin";
-    printf("STR_STARTS_WITH(\"%s\", \"/usr\"): %s\n\n",
-           path, STR_STARTS_WITH(path, "/usr") ? "true" : "false");
+    str path_str = "/usr/local/bin";
+    printf("STR_STARTS_WITH(\"%s\", \"/usr\"): %s\n",
+           path_str, STR_STARTS_WITH(path_str, "/usr") ? "true" : "false");
+
+    str sentence = "The quick brown fox";
+    printf("STR_CONTAINS(\"%s\", \"fox\"): %s\n",
+           sentence, STR_CONTAINS(sentence, "fox") ? "true" : "false");
+
+    str raw = "  hello world  ";
+    str trimmed = strtrim(raw);
+    printf("strtrim(\"%s\"): \"%s\"\n", raw, trimmed);
+    FREE(trimmed);
+
+    str csv = "one,two,three";
+    str_vec parts = strsplit(csv, ',');
+    printf("strsplit(\"%s\", ','): [", csv);
+    FOR(i, parts.length) {
+        printf("\"%s\"", parts.data[i]);
+        if (i < parts.length - 1) printf(", ");
+        FREE(parts.data[i]);
+    }
+    printf("]\n");
+    vec_free(&parts);
+
+    str items[] = {"apple", "banana", "cherry"};
+    str joined = strjoin(items, ARRAY_SIZE(items), ", ");
+    printf("strjoin: \"%s\"\n", joined);
+    FREE(joined);
+
+    str lower = strdup("Hello World");
+    str_to_lower(lower);
+    printf("str_to_lower: \"%s\"\n", lower);
+    str_to_upper(lower);
+    printf("str_to_upper: \"%s\"\n\n", lower);
+    FREE(lower);
+
+    // DYNAMIC ARRAY (Vec)
+    str_vec vec = vec_init();
+    vec_push(&vec, "first");
+    vec_push(&vec, "second");
+    vec_push(&vec, "third");
+    printf("str_vec: length=%zu, capacity=%zu\n", vec.length, vec.capacity);
+    FOR(i, vec.length) printf("  vec[%zu] = \"%s\"\n", i, vec.data[i]);
+    vec_free(&vec);
+    printf("vec freed: length=%zu, capacity=%zu\n\n", vec.length, vec.capacity);
+
+    // PATH UTILITIES
+    str full_path = "/usr/local/bin/main.demo";
+    str base = path_basename(full_path);
+    printf("path_basename: \"%s\"\n", base);
+    FREE(base);
+
+    str dir = path_dirname(full_path);
+    printf("path_dirname: \"%s\"\n", dir);
+    FREE(dir);
+
+    str ext = path_extension(full_path);
+    printf("path_extension: \"%s\"\n", ext);
+    FREE(ext);
+
+    str dir_no_slash = "/usr/local";
+    str bin = "bin";
+    str joined_path = path_join(dir_no_slash, bin);
+    printf("path_join(\"%s\", \"%s\"): \"%s\"\n", dir_no_slash, bin, joined_path);
+    FREE(joined_path);
+
+    printf("path_exists(\".\"): %s\n", path_exists(".") ? "true" : "false");
+    printf("path_exists(\"nonexistent\"): %s\n", path_exists("nonexistent") ? "true" : "false");
+    printf("path_is_dir(\".\"): %s\n", path_is_dir(".") ? "true" : "false");
+    printf("path_is_file(\"clibx.h\"): %s\n", path_is_file("clibx.h") ? "true" : "false");
+    printf("path_file_size(\"clibx.h\"): %ld bytes\n\n", path_file_size("clibx.h"));
+
+    // HASH MAP
+    clibx_hashmap map = hashmap_init();
+    hashmap_put(&map, "name", "Alice");
+    hashmap_put(&map, "age", "30");
+    hashmap_put(&map, "city", "New York");
+    hashmap_put(&map, "name", "Bob"); // overwrite
+    printf("hashmap: count=%zu, capacity=%zu\n", map.count, map.capacity);
+    printf("  name: \"%s\"\n", hashmap_get(&map, "name"));
+    printf("  age: \"%s\"\n", hashmap_get(&map, "age"));
+    printf("  city: \"%s\"\n", hashmap_get(&map, "city"));
+    printf("  missing: %s\n", hashmap_get(&map, "missing") ? "found" : "NULL");
+    printf("  contains(\"age\"): %s\n", hashmap_contains(&map, "age") ? "true" : "false");
+    hashmap_free(&map);
+    printf("hashmap freed: count=%zu, capacity=%zu\n\n", map.count, map.capacity);
 
     // TYPE HELPERS
     int value = 5;

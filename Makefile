@@ -1,3 +1,5 @@
+CC = gcc
+FLAGS = -lm
 BINDIR = bin
 SRCDIR = .
 
@@ -12,5 +14,5 @@ clean:
 	rm -rf $(BINDIR)
 
 build:
-	@gcc main.demo.c -o $(BINDIR)/main.demo -lm
-	@gcc print.demo.c -o $(BINDIR)/print.demo
+	$(CC) main.demo.c -o $(BINDIR)/main.demo $(FLAGS)
+	$(CC) print.demo.c -o $(BINDIR)/print.demo
