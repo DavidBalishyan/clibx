@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -19,6 +19,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       # Install dependencies
       - name: Install MkDocs + tools
         run: |
@@ -26,25 +32,27 @@ jobs:
           sudo apt-get install -y pandoc
           pip install mkdocs
 
-      # Prepare docs directory
+      # Prepare docs folder
       - name: Prepare docs folder
-        run: | 
-           mkdocs new docs
-           echo "site_name: clibx
+        run: mkdir -p docs/man
 
-            theme:
-              name: mkdocs
+      # Create mkdocs.yml
+      - name: Create mkdocs.yml
+        run: |
+          cat > mkdocs.yml << 'EOF'
+          site_name: clibx
 
-              nav:
-                - Home: index.md
-                - Installation: install.md
-                - clibx(3): man/clibx.md
-                - clibx_print(3): man/clibx_print.md
-                - clibx_list(3): man/clibx_list.md
-                - LICENSE: LICENSE
+          theme:
+            name: mkdocs
 
-            " > docs/mkdocs.yml
-
+          nav:
+            - Home: index.md
+            - Installation: install.md
+            - clibx(3): man/clibx.md
+            - clibx_print(3): man/clibx_print.md
+            - clibx_list(3): man/clibx_list.md
+            - LICENSE: LICENSE.md
+          EOF
 
       # Copy README -> homepage
       - name: Copy README as index
@@ -58,16 +66,16 @@ jobs:
       - name: Copy LICENSE
         run: cp LICENSE docs/LICENSE.md
 
-      # Convert manpages -> Markdown (optional but useful)
+      # Convert manpages -> Markdown
       - name: Convert manpages
         run: |
-          mkdir -p docs/docs/man
+          mkdir -p docs/man
           for f in man/man3/*; do
             name=$(basename "$f" .3)
-            pandoc "$f" -f man -t markdown -o "docs/docs/man/${name}.md"
+            pandoc "$f" -f man -t markdown -o "docs/man/${name}.md"
           done
 
-      # Build MkDocs site
+      # Build site
       - name: Build site
         run: mkdocs build
 
