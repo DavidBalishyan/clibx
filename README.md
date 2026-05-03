@@ -1,3 +1,6 @@
+>[!NOTE]
+>This README is also available as a documentation site [here](https://davidbalishyan.github.io/clibx) 
+
 # clibx
 
 A small, header-only C utility library with common macros and helper functions designed to simplify everyday C development tasks.
