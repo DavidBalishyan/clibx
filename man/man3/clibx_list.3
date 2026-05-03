@@ -1,0 +1,266 @@
+.TH CLIBX_LIST 3 "May 2026" "clibx" "clibx Linked List Reference"
+.SH NAME
+clibx_list \- generic singly-linked list implementation
+.SH SYNOPSIS
+.B #include <clibx_list.h>
+.SH DESCRIPTION
+.B clibx_list
+is a generic, type-agnostic singly-linked list implementation. It uses void
+pointers to store arbitrary data of any type, making it suitable for storing
+integers, strings, structs, or any other data type.
+.SP
+The list maintains both head and tail pointers for efficient O(1) append operations.
+.SH DATA TYPES
+.TP
+.B clibx_node
+A single node in the linked list.
+.RS
+.nf
+typedef struct clibx_node {
+    void *data;                /* Pointer to user data */
+    struct clibx_node *next;   /* Next node in list */
+} clibx_node;
+.fi
+.RE
+.TP
+.B clibx_list
+The linked list container.
+.RS
+.nf
+typedef struct {
+    clibx_node *head;          /* First node */
+    clibx_node *tail;          /* Last node (for O(1) append) */
+    size_t count;              /* Number of elements */
+} clibx_list;
+.fi
+.RE
+.SH FUNCTIONS
+.SS Initialization
+.TP
+.B clibx_list list_init(void)
+Initialize an empty linked list.
+Time complexity: O(1). Space complexity: O(1).
+.SS Insertion
+.TP
+.B void list_push_back(clibx_list *list, void *data)
+Append data to the end of the list.
+Time complexity: O(1). Space complexity: O(1).
+.TP
+.B void list_push_front(clibx_list *list, void *data)
+Prepend data to the beginning of the list.
+Time complexity: O(1). Space complexity: O(1).
+.SS Access
+.TP
+.B void* list_get(clibx_list *list, size_t index)
+Get data at a specific 0-based index.
+Returns NULL if index is out of bounds.
+Time complexity: O(n). Space complexity: O(1).
+.TP
+.B void* list_front(clibx_list *list)
+Get data at the front of the list.
+Returns NULL if list is empty.
+Time complexity: O(1). Space complexity: O(1).
+.TP
+.B void* list_back(clibx_list *list)
+Get data at the back of the list.
+Returns NULL if list is empty.
+Time complexity: O(1). Space complexity: O(1).
+.SS Search
+.TP
+.B int list_contains(clibx_list *list, void *value, int (*cmp)(void*, void*))
+Check if a value exists using the provided comparison function.
+The comparison function should return 1 if values are equal, 0 otherwise.
+Time complexity: O(n). Space complexity: O(1).
+.SS Removal
+.TP
+.B void* list_pop_front(clibx_list *list)
+Remove and return the first element.
+Caller is responsible for freeing the returned data.
+Time complexity: O(1). Space complexity: O(1).
+.TP
+.B void* list_remove_at(clibx_list *list, size_t index)
+Remove and return the element at the specified index.
+Caller is responsible for freeing the returned data.
+Returns NULL if index is out of bounds.
+Time complexity: O(n). Space complexity: O(1).
+.TP
+.B void list_remove_all(clibx_list *list, int free_data)
+Remove all nodes from the list. 
+If free_data is non-zero, also calls free() on each node's data.
+Time complexity: O(n). Space complexity: O(1).
+.SS Query
+.TP
+.B int list_is_empty(clibx_list *list)
+Check if the list is empty.
+Time complexity: O(1). Space complexity: O(1).
+.TP
+.B size_t list_size(clibx_list *list)
+Get the number of elements in the list.
+Time complexity: O(1). Space complexity: O(1).
+.SS Memory Management
+.TP
+.B void list_free(clibx_list *list, int free_data)
+Free all memory used by the list.
+If free_data is non-zero, also calls free() on each node's data.
+Time complexity: O(n). Space complexity: O(1).
+.SS Printing (Utility)
+.TP
+.B void list_print_int(clibx_list *list)
+Print all integers in the list in [a, b, c] format.
+.TP
+.B void list_print_str(clibx_list *list)
+Print all strings in the list in ["a", "b", "c"] format.
+.SH MACROS
+.TP
+.B LIST_FOR_EACH(node, list)
+Iterate over all nodes in the list.
+.RS
+.nf
+clibx_node *node;
+LIST_FOR_EACH(node, &list) {
+    printf("%d\n", *(int*)node->data);
+}
+.fi
+.RE
+.SH EXAMPLE
+.nf
+#include <clibx_list.h>
+
+int main(void) {
+    clibx_list list = list_init();
+
+    /* Add integers */
+    int *a = NEW(int); *a = 10;
+    int *b = NEW(int); *b = 20;
+    int *c = NEW(int); *c = 30;
+
+    list_push_back(&list, a);
+    list_push_back(&list, b);
+    list_push_back(&list, c);
+
+    /* Print list */
+    printf("List: ");
+    list_print_int(&list);  /* Output: [10, 20, 30] */
+
+    /* Access front/back */
+    printf("Front: %d\\n", *(int*)list_front(&list));  /* 10 */
+    printf("Back: %d\\n", *(int*)list_back(&list));    /* 30 */
+
+    /* Iterate */
+    clibx_node *node;
+    LIST_FOR_EACH(node, &list) {
+        printf("Value: %d\\n", *(int*)node->data);
+    }
+
+    /* Pop and remove */
+    void *removed = list_pop_front(&list);
+    if (removed) {
+        printf("Removed: %d\\n", *(int*)removed);
+        free(removed);
+    }
+
+    /* Clean up */
+    list_free(&list, 1);  /* Free list and all data */
+
+    return 0;
+}
+.fi
+.SH ITERATING WITH CUSTOM TYPES
+.nf
+typedef struct {
+    int id;
+    char name[50];
+} Person;
+
+int main(void) {
+    clibx_list people = list_init();
+
+    Person *alice = NEW(Person);
+    alice->id = 1;
+    strcpy(alice->name, "Alice");
+    list_push_back(&people, alice);
+
+    /* Iterate */
+    clibx_node *node;
+    LIST_FOR_EACH(node, &people) {
+        Person *p = (Person*)node->data;
+        printf("ID: %d, Name: %s\\n", p->id, p->name);
+    }
+
+    list_free(&people, 1);
+    return 0;
+}
+.fi
+.SH SEARCHING WITH CUSTOM COMPARATORS
+.nf
+int int_cmp(void *a, void *b) {
+    return *(int*)a == *(int*)b;
+}
+
+int main(void) {
+    clibx_list list = list_init();
+
+    int *val1 = NEW(int); *val1 = 42;
+    int *val2 = NEW(int); *val2 = 99;
+    list_push_back(&list, val1);
+    list_push_back(&list, val2);
+
+    int target = 42;
+    if (list_contains(&list, &target, int_cmp)) {
+        printf("Found 42 in list\\n");
+    }
+
+    list_free(&list, 1);
+    return 0;
+}
+.fi
+.SH TIME COMPLEXITY
+.TS
+allbox tab(:);
+c | c | c
+l | c | l
+.
+Operation:Complexity:Notes
+list_init:O(1):Constant time
+list_push_back:O(1):Amortized constant with tail pointer
+list_push_front:O(1):Prepend to head
+list_pop_front:O(1):Remove from head
+list_get:O(n):Requires traversal to index
+list_remove_at:O(n):Requires traversal to index
+list_contains:O(n):Full search in worst case
+list_free:O(n):Must traverse entire list
+list_is_empty:O(1):Check count
+list_size:O(1):Check count
+.TE
+.SH NOTES
+.TP
+.B Memory Management
+The list does not automatically manage the lifetime of user data.
+Callers must ensure proper cleanup:
+.RS
+.IP -
+Use list_free(&list, 1) to free both nodes and data
+.IP -
+Use list_free(&list, 0) to free only nodes (data freed separately)
+.IP -
+When removing elements with list_pop_front() or list_remove_at(),
+the caller becomes responsible for freeing the returned data
+.RE
+.TP
+.B Type Safety
+Since the list uses void pointers, there is no compile-time type checking.
+Ensure consistent data types are stored and retrieved from a single list.
+Cast carefully when retrieving data.
+.TP
+.B Generic Usage
+The list works with any data type: primitives, strings, structs, or pointers.
+Simply cast to the appropriate type when accessing data.
+.SH SEE ALSO
+.BR clibx (3),
+.BR clibx_print (3)
+.SH AUTHOR
+David Balishyan <davidbalishyan12@gmail.com>
+.SH BUGS
+Report bugs to the project repository.
+.SH LICENSE
+See LICENSE file in the project root.

@@ -1,0 +1,86 @@
+name: Build and Deploy MkDocs Docs
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install dependencies
+      - name: Install MkDocs + tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+          pip install mkdocs
+
+      # Prepare docs directory
+      - name: Prepare docs folder
+        run: | 
+           mkdocs new docs
+           echo "site_name: clibx
+
+            theme:
+              name: mkdocs
+
+              nav:
+                - Home: index.md
+                - Installation: install.md
+                - clibx(3): man/clibx.md
+                - clibx_print(3): man/clibx_print.md
+                - clibx_list(3): man/clibx_list.md
+                - LICENSE: LICENSE
+
+            " > docs/mkdocs.yml
+
+
+      # Copy README -> homepage
+      - name: Copy README as index
+        run: cp README.md docs/index.md
+
+      # Copy INSTALL
+      - name: Copy INSTALL
+        run: cp INSTALL.md docs/install.md
+
+      # Copy LICENSE
+      - name: Copy LICENSE
+        run: cp LICENSE docs/LICENSE.md
+
+      # Convert manpages -> Markdown (optional but useful)
+      - name: Convert manpages
+        run: |
+          mkdir -p docs/docs/man
+          for f in man/man3/*; do
+            name=$(basename "$f" .3)
+            pandoc "$f" -f man -t markdown -o "docs/docs/man/${name}.md"
+          done
+
+      # Build MkDocs site
+      - name: Build site
+        run: mkdocs build
+
+      # Upload artifact for Pages
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

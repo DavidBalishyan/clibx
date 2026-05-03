@@ -1,0 +1,204 @@
+# NAME
+
+clibx_print - lightweight printf implementation using direct Linux
+syscalls
+
+# SYNOPSIS
+
+**#include \<clibx_print.h\>**
+
+# DESCRIPTION
+
+**clibx_print** is a completely standalone, optional module providing a
+minimal printf-style output implementation using direct Linux x86_64
+syscalls. It has no dependencies on libc\'s stdio, making it useful for
+minimal environments or educational purposes.
+
+This module is independent and can be used without clibx.h.
+
+# FUNCTIONS
+
+**int clibx_printf(const char \*fmt, \...)**
+
+:   Printf-style output to stdout (file descriptor 1). Supports format
+    specifiers listed in the SUPPORTED SPECIFIERS section. Returns the
+    number of characters written.
+
+**int clibx_fprintf(int fd, const char \*fmt, \...)**
+
+:   Printf-style output to an arbitrary file descriptor. Accepts the
+    same format specifiers as clibx_printf. Returns the number of
+    characters written.
+
+# SUPPORTED SPECIFIERS
+
+TABLE
+
+# EXAMPLE
+
+    #include <clibx_print.h>
+
+    int main(void) {
+        clibx_printf("Hello, %s!\n", "World");
+        clibx_printf("Age: %d, Score: %u\n", 30, 100);
+        clibx_printf("Hex: 0x%x, Octal: %o\n", 255, 82);
+        
+        int arr[] = {1, 2, 3};
+        clibx_printf("Array at: %p\n", (void*)arr);
+        
+        clibx_fprintf(2, "Error: %s (code: %d)\n", 
+                      "Something failed", 404);
+        
+        return 0;
+    }
+
+# COMPILATION
+
+Link with no additional libraries:
+
+    gcc myprogram.c -o myprogram
+
+# PLATFORM REQUIREMENTS
+
+**Architecture**
+
+:   x86_64 (Intel/AMD 64-bit)
+
+**Operating System**
+
+:   Linux with syscall support
+
+**Kernel**
+
+:   Standard Linux kernel with write(2) syscall
+
+# LIMITATIONS
+
+**No Floating Point**
+
+:   %f, %F, %e, %E, %g, %G specifiers are not supported. Floating-point
+    formatting would require significant code overhead.
+
+**No Width/Precision**
+
+:   Modifiers like ., -, 0 (padding), width specifiers are not
+    implemented. Formatting is straightforward: types are printed with
+    default representation.
+
+**No %n Specifier**
+
+:   The %n specifier (write count) is not supported for security
+    reasons.
+
+**Basic %p Implementation**
+
+:   Pointers are printed in lowercase hex with 0x prefix.
+
+# WHY USE CLIBX_PRINT?
+
+**Minimal Dependencies**
+
+:   Zero dependency on libc\'s stdio. Perfect for freestanding
+    environments.
+
+**Direct Syscalls**
+
+:   Uses Linux write(2) directly via inline assembly. No buffering, each
+    call writes immediately to the file descriptor.
+
+**Educational Value**
+
+:   Useful for learning about syscall-level I/O in C.
+
+**Small Footprint**
+
+:   Extremely lightweight, suitable for embedded or minimal programs.
+
+**Independent Module**
+
+:   Can be used standalone without clibx.h or other dependencies.
+
+# IMPLEMENTATION DETAILS
+
+**Linux write() Syscall**
+
+:   Uses inline x86_64 assembly:
+
+        mov $1, %%rax          /* Syscall number for write */
+        syscall                /* Invoke syscall */
+
+**No Buffering**
+
+:   Each call to clibx_printf or clibx_fprintf immediately invokes
+    write(2). No internal buffer is maintained.
+
+**Error Handling**
+
+:   Returns -1 on write syscall failure. The caller should check the
+    return value.
+
+# EXAMPLE: USING WITH STDERR
+
+    #include <clibx_print.h>
+
+    int main(void) {
+        clibx_fprintf(1, "Normal output\n");      /* stdout */
+        clibx_fprintf(2, "Error message\n");      /* stderr */
+        
+        return 0;
+    }
+
+# EXAMPLE: MINIMAL PROGRAM (NO LIBC STDIO)
+
+    #define _GNU_SOURCE
+    #include <clibx_print.h>
+
+    int main(void) {
+        clibx_printf("Hello from syscalls!\n");
+        clibx_printf("Numbers: %d, %u, 0x%x\n", -1, 42, 255);
+        return 0;
+    }
+
+    /* Compile with minimal libc:
+       gcc -nostdlib minimal.c -o minimal \
+           /lib64/crt1.o /lib64/crti.o /lib64/crtn.o \
+           -lc -dynamic-linker /lib64/ld-linux-x86-64.so*
+     */
+
+# COMPARISON WITH STANDARD PRINTF
+
+TABLE
+
+# NOTES
+
+**When to Use**
+
+:   Use clibx_printf when you specifically need direct syscall output
+    without stdio buffering or libc overhead. For most applications,
+    standard printf is more appropriate and feature-complete.
+
+**File Descriptors**
+
+:   Standard file descriptors: 0 = stdin, 1 = stdout, 2 = stderr. You
+    can write to any open file descriptor.
+
+**Unicode/Multibyte**
+
+:   No special handling of UTF-8 or multibyte characters. Bytes are
+    written directly to the file descriptor.
+
+# SEE ALSO
+
+**clibx**(3), **clibx_list**(3), **write**(2), **printf**(3)
+
+# AUTHOR
+
+David Balishyan \<davidbalishyan12@gmail.com\>
+
+# BUGS
+
+Report bugs to the project repository.
+
+# LICENSE
+
+See LICENSE file in the project root.

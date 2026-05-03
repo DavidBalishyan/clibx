@@ -1,0 +1,12 @@
+site_name: clibx
+
+theme:
+  name: mkdocs
+
+nav:
+  - Home: index.md
+  - Installation: install.md
+  - clibx(3): man/clibx.md
+  - clibx_print(3): man/clibx_print.md
+  - clibx_list(3): man/clibx_list.md
+  - LICENSE: LICENSE

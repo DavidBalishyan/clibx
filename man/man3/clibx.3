@@ -1,0 +1,151 @@
+.TH CLIBX 3 "May 2026" "clibx" "clibx Library Reference"
+.SH NAME
+clibx \- minimal C utility library for common programming patterns
+.SH SYNOPSIS
+.B #include <clibx.h>
+.SH DESCRIPTION
+.B clibx
+is a lightweight, header-only C utility library providing common macros and
+helper functions to simplify everyday C development tasks. It requires only
+the C standard library and is designed with zero external dependencies.
+.SH FEATURES
+.TP
+.B Array Operations
+\- ARRAY_SIZE, print_int_array, print_double_array, print_char_array
+.TP
+.B Math Macros
+\- MIN, MAX, CLAMP, ABS, LERP, IS_POWER_OF_2, NEXT_POWER_OF_2
+.TP
+.B Bitwise Operations
+\- BIT, SET_BIT, CLEAR_BIT, TOGGLE_BIT, CHECK_BIT
+.TP
+.B Memory Utilities
+\- NEW, NEW_ARRAY, NEW_ZEROED, FREE, SWAP
+.TP
+.B String Operations
+\- STREQ, STR_EMPTY, STR_STARTS_WITH, STR_CONTAINS
+\- strtrim, strsplit, strjoin, str_to_lower, str_to_upper
+.TP
+.B Dynamic Vector
+\- str_vec with vec_init, vec_push, vec_free
+.TP
+.B Path Utilities
+\- path_basename, path_dirname, path_extension, path_join
+\- path_exists, path_is_dir, path_is_file, path_file_size
+.TP
+.B Hash Map
+\- String-to-string hash map with DJB2 hashing
+\- hashmap_init, hashmap_put, hashmap_get, hashmap_contains, hashmap_free
+.TP
+.B Logging & Error Handling
+\- LOG, ERROR, ASSERT, UNIMPLEMENTED, UNREACHABLE
+.TP
+.B Type Introspection
+\- TYPE_STR, TYPE_NAME, TYPE_FUNC, PRINT
+.TP
+.B Compiler Hints (GCC/Clang)
+\- LIKELY, UNLIKELY, UNUSED, DEPRECATED, NODISCARD, SWAP
+.TP
+.B Loop Helpers
+\- FOR, FOR_RANGE
+.SH DATA TYPES
+.TP
+.B str
+String type alias for char*
+.TP
+.B str_vec
+Dynamic string vector
+.RS
+.nf
+typedef struct {
+    str *data;
+    size_t length;
+    size_t capacity;
+} str_vec;
+.fi
+.RE
+.TP
+.B clibx_hashmap
+String-to-string hash map
+.RS
+.nf
+typedef struct {
+    clibx_hashmap_entry **buckets;
+    size_t capacity;
+    size_t count;
+} clibx_hashmap;
+.fi
+.RE
+.SH MEMORY MANAGEMENT
+All memory functions are convenience wrappers around malloc/calloc/free:
+.TP
+.B NEW(type)
+Allocate memory for a single object. Returns pointer or exits on failure.
+.TP
+.B NEW_ARRAY(type, count)
+Allocate array of given type and count.
+.TP
+.B NEW_ZEROED(type)
+Allocate and zero-initialize a single object.
+.TP
+.B FREE(ptr)
+Free memory and set pointer to NULL (prevents dangling pointers).
+.SH EXAMPLE
+.nf
+#include <clibx.h>
+
+int main(void) {
+    // Array operations
+    int arr[] = {1, 2, 3, 4, 5};
+    print_int_array(arr, ARRAY_SIZE(arr));
+
+    // Math operations
+    int min = MIN(10, 20);
+    int max = MAX(10, 20);
+
+    // Memory allocation
+    int *ptr = NEW(int);
+    *ptr = 42;
+    FREE(ptr);
+
+    // String operations
+    str text = "  hello world  ";
+    str trimmed = strtrim(text);
+    printf("Trimmed: '%s'\n", trimmed);
+    FREE(trimmed);
+
+    // Logging
+    LOG("Application started");
+    if (ptr == NULL)
+        ERROR("Pointer is NULL");
+
+    return 0;
+}
+.fi
+.SH COMPILATION
+Compile with all necessary dependencies:
+.nf
+gcc -lm myprogram.c -o myprogram
+.fi
+.SH PORTABILITY NOTES
+.TP
+.B GCC/Clang Only Features
+SWAP, LIKELY, UNLIKELY, DEPRECATED, NODISCARD, TYPE_NAME, TYPE_FUNC
+provide portable no-op fallbacks on other compilers.
+.TP
+.B POSIX Features
+Path utilities require POSIX functions (access, stat, basename, dirname)
+and work on Unix-like systems (Linux, macOS, BSD).
+.TP
+.B Boolean Support
+If <stdbool.h> is not available, clibx_bool, clibx_true, clibx_false
+are provided. Use clibx_bool for boolean values in pre-C99 code.
+.SH SEE ALSO
+.BR clibx_list (3),
+.BR clibx_print (3)
+.SH AUTHOR
+DavidBalishyan <davidbalishyan12@gmail.com>
+.SH BUGS
+Report bugs to the project repository.
+.SH LICENSE
+See LICENSE file in the project root.
