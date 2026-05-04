@@ -36,59 +36,11 @@ jobs:
       - name: Prepare docs folder
         run: mkdir -p docs/man
 
-      # Add MkDocs hook
-      - name: Add MkDocs hooks
-        run: |
-          cat > hooks.py << 'EOF'
-          import re
-
-          def on_page_markdown(markdown, **kwargs):
-              # --- 1. Remove "Table of contents" section ---
-              toc_pattern = re.compile(
-                  r"(#+ Table of contents.*?)(\n# |\Z)",
-                  re.DOTALL | re.IGNORECASE
-              )
-              markdown = re.sub(toc_pattern, r"\2", markdown)
-
-              # --- 2. Remove ONLY the GitHub banner note (specific text match) ---
-              banner_pattern = re.compile(
-                  r"> \[!NOTE\]\n((?:> .*\n?)*)",
-                  re.MULTILINE
-              )
-
-              def remove_banner(match):
-                  content = match.group(1)
-                  if "This README is also available" in content:
-                      return ""  # remove it
-                  return match.group(0)  # keep it
-
-              markdown = re.sub(banner_pattern, remove_banner, markdown)
-
-              # --- 3. Convert remaining GitHub callouts to MkDocs admonitions ---
-              def repl(match):
-                  kind = match.group(1).lower()
-                  content = re.sub(r"^> ?", "", match.group(2), flags=re.MULTILINE)
-                  indented = "\n".join("    " + line for line in content.strip().splitlines())
-                  return f"!!! {kind}\n{indented}\n"
-
-              callout_pattern = re.compile(
-                  r"> \[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]\n((?:> .*\n?)*)",
-                  re.MULTILINE,
-              )
-
-              markdown = re.sub(callout_pattern, repl, markdown)
-
-              return markdown
-          EOF
-
-      # Create mkdocs.yml
+      # Create mkdocs.yml (Material theme + dark mode)
       - name: Create mkdocs.yml
         run: |
           cat > mkdocs.yml << 'EOF'
           site_name: clibx
-
-          hooks:
-            - hooks.py
 
           theme:
             name: material
@@ -101,11 +53,6 @@ jobs:
                 toggle:
                   icon: material/weather-sunny
                   name: Switch to light mode
-
-          markdown_extensions:
-            - admonition
-            - toc:
-                permalink: true
 
           nav:
             - Home: index.md
