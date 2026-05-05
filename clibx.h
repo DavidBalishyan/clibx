@@ -339,11 +339,9 @@ static inline void print_char_array(const char *arr, size_t len) {
 //
 
 #ifndef __cplusplus
-    #ifndef bool
-        #define clibx_bool  int
-        #define clibx_true  1
-        #define clibx_false 0
-    #endif
+    #define clibx_bool  int
+    #define clibx_true  1
+    #define clibx_false 0
 #endif
 
 /*
