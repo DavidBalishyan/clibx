@@ -8,7 +8,7 @@ INSTALL_DIR = $(INSTALL) -d
 INSTALL_FILE = $(INSTALL) -m 644
 INSTALL_PROGRAM = $(INSTALL) -m 755
 
-.PHONY: all clean build install install-headers install-man uninstall
+.PHONY: all clean build install install-headers install-man uninstall reinstall
 
 all: $(BINDIR) build
 
@@ -48,3 +48,5 @@ uninstall:
 	rm -f $(PREFIX)/share/man/man3/clibx_list.3
 	rm -f $(PREFIX)/share/man/man3/clibx_print.3
 	@echo "Uninstallation complete!"
+
+reinstall: uninstall install
