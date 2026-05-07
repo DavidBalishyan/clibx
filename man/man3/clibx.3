@@ -8,6 +8,10 @@ clibx \- minimal C utility library for common programming patterns
 is a lightweight, header-only C utility library providing common macros and
 helper functions to simplify everyday C development tasks. It requires only
 the C standard library and is designed with zero external dependencies.
+
+Path utilities in `clibx` are implemented using standard C string and file
+operations, so the core header avoids POSIX-only dependencies like
+`<sys/stat.h>` and `<libgen.h>`.
 .SH FEATURES
 .TP
 .B Array Operations
@@ -15,6 +19,9 @@ the C standard library and is designed with zero external dependencies.
 .TP
 .B Math Macros
 \- MIN, MAX, CLAMP, ABS, LERP, IS_POWER_OF_2, NEXT_POWER_OF_2
+.TP
+.B Math Functions
+\- clibx_log2, clibx_pow, clibx_ceil, clibx_floor, clibx_round
 .TP
 .B Bitwise Operations
 \- BIT, SET_BIT, CLEAR_BIT, TOGGLE_BIT, CHECK_BIT
@@ -123,9 +130,9 @@ int main(void) {
 }
 .fi
 .SH COMPILATION
-Compile with all necessary dependencies:
+Compile with standard C libraries:
 .nf
-gcc -lm myprogram.c -o myprogram
+gcc myprogram.c -o myprogram
 .fi
 .SH PORTABILITY NOTES
 .TP

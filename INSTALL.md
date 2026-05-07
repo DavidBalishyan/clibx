@@ -82,7 +82,7 @@ Place downloaded files in your project directory or include path, then include t
 Compile with:
 
 ```bash
-gcc -o myprogram myprogram.c -lm
+gcc -o myprogram myprogram.c
 ```
 
 ## System-wide Installation
@@ -191,7 +191,7 @@ After system-wide installation, include only what you need:
 Compile normally:
 
 ```bash
-gcc -o myprogram myprogram.c -lm  /* -lm for math functions */
+gcc -o myprogram myprogram.c
 ```
 
 ### Method 2: Local Include (No Installation)
@@ -220,7 +220,7 @@ Include locally:
 Compile:
 
 ```bash
-gcc -o myprogram myprogram.c -lm
+gcc -o myprogram myprogram.c
 ```
 
 ### Method 3: Specify Include Path
@@ -228,7 +228,7 @@ gcc -o myprogram myprogram.c -lm
 Include from a specific directory:
 
 ```bash
-gcc -I/path/to/clibx/headers -o myprogram myprogram.c -lm
+gcc -I/path/to/clibx/headers -o myprogram myprogram.c
 ```
 
 ## Building Examples
@@ -270,7 +270,7 @@ Ensure headers are in a location that your compiler searches:
 gcc -v -E - < /dev/null 2>&1 | grep include
 
 # Or try explicit include path
-gcc -I/path/to/headers -o myprogram myprogram.c -lm
+gcc -I/path/to/headers -o myprogram myprogram.c
 ```
 
 ### Manpages not found
@@ -292,14 +292,10 @@ man clibx
 Ensure you're using C99 or later:
 
 ```bash
-gcc -std=c99 -o myprogram myprogram.c -lm
+gcc -std=c99 -o myprogram myprogram.c
 ```
 
-Link libm (required for math functions):
-
-```bash
-gcc -o myprogram myprogram.c -lm
-```
+No external libraries required.
 
 ## Upgrading
 

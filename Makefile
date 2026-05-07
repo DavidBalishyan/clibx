@@ -1,5 +1,5 @@
 CC = gcc
-FLAGS = -lm
+FLAGS =
 BINDIR = bin
 SRCDIR = .
 PREFIX ?= /usr/local

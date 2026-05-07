@@ -37,7 +37,7 @@ A small, header-only C utility library with common macros and helper functions d
 
 Features include:
 - Array helpers and printing utilities
-- Math macros (`MIN`, `MAX`, `CLAMP`, `ABS`, `LERP`, power-of-2 checks)
+- Math macros (`MIN`, `MAX`, `CLAMP`, `ABS`, `LERP`, power-of-2 checks) and functions (`clibx_log2`, `clibx_pow`, `clibx_ceil`, `clibx_floor`, `clibx_round`)
 - Memory allocation helpers (`NEW`, `NEW_ARRAY`, `NEW_ZEROED`, `FREE`)
 - Bitwise operations (`BIT`, `SET_BIT`, `CLEAR_BIT`, `TOGGLE_BIT`, `CHECK_BIT`)
 - Dynamic string vector (`str_vec`)
@@ -112,6 +112,13 @@ Linear interpolation between two values. `t` should be in the range `[0.0, 1.0]`
 double result = LERP(0.0, 100.0, 0.25);  // result = 25.0
 ```
 
+#### `clibx_log2(x)`
+Compute the base-2 logarithm of x. Returns NaN for x <= 0.
+
+```c
+double result = clibx_log2(8.0);  // result = 3.0
+```
+
 #### `IS_POWER_OF_2(n)`
 Check whether an integer is a power of two. Returns non-zero if true.
 
@@ -121,11 +128,39 @@ IS_POWER_OF_2(6);   // false
 ```
 
 #### `NEXT_POWER_OF_2(n)`
-Return the next power of two strictly greater than `n`. Requires `<math.h>`.
+Return the next power of two strictly greater than `n`.
 
 ```c
 NEXT_POWER_OF_2(5);   // 8
 NEXT_POWER_OF_2(8);   // 16
+```
+
+#### `clibx_pow(base, exp)`
+Compute base raised to the power of exp. Only supports integer exponents.
+
+```c
+double result = clibx_pow(2.0, 3.0);  // result = 8.0
+```
+
+#### `clibx_ceil(x)`
+Return the smallest integer greater than or equal to x.
+
+```c
+double result = clibx_ceil(3.7);  // result = 4.0
+```
+
+#### `clibx_floor(x)`
+Return the largest integer less than or equal to x.
+
+```c
+double result = clibx_floor(3.7);  // result = 3.0
+```
+
+#### `clibx_round(x)`
+Round x to the nearest integer.
+
+```c
+double result = clibx_round(3.7);  // result = 4.0
 ```
 
 ---
@@ -520,8 +555,11 @@ printf("%s\n", full);  // Output: "/usr/local/bin"
 FREE(full);
 ```
 
+>[!NOTE]
+>`clibx` implements these path utilities using only standard C headers, without depending on POSIX-only `<sys/stat.h>` or `<libgen.h>`.
+
 #### `path_exists(path)`
-Checks if a path exists on disk.
+Checks if a path exists on disk by testing whether it can be opened for reading.
 
 ```c
 if (path_exists("/etc/passwd")) {
@@ -540,6 +578,9 @@ if (path_is_file("/etc/passwd")) {
     LOG("It's a file");
 }
 ```
+
+>[!NOTE]
+>These functions use standard C file access checks and path parsing logic; they are intentionally lightweight and portable.
 
 #### `path_file_size(path)`
 Returns file size in bytes, or -1 on error.
