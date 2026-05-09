@@ -106,10 +106,12 @@ Time complexity: O(n). Space complexity: O(1).
 .SS Printing (Utility)
 .TP
 .B void list_print_int(clibx_list *list)
-Print all integers in the list in [a, b, c] format.
+Print all integers in the list in [a, b, c] format to stdout.
+Time complexity: O(n). Space complexity: O(1).
 .TP
 .B void list_print_str(clibx_list *list)
-Print all strings in the list in ["a", "b", "c"] format.
+Print all strings in the list in ["a", "b", "c"] format to stdout.
+Time complexity: O(n * m) where m is average string length. Space complexity: O(1).
 .SH MACROS
 .TP
 .B LIST_FOR_EACH(node, list)

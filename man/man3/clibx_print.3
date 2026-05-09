@@ -12,15 +12,15 @@ on libc's stdio, making it useful for minimal environments or educational purpos
 This module is independent and can be used without clibx.h.
 .SH FUNCTIONS
 .TP
-.B int clibx_printf(const char *fmt, ...)
+.B void clibx_printf(const char *fmt, ...)
 Printf-style output to stdout (file descriptor 1).
 Supports format specifiers listed in the SUPPORTED SPECIFIERS section.
-Returns the number of characters written.
+Returns void. Write failures are not reported to the caller; silent failures occur on syscall errors.
 .TP
-.B int clibx_fprintf(int fd, const char *fmt, ...)
+.B void clibx_fprintf(int fd, const char *fmt, ...)
 Printf-style output to an arbitrary file descriptor.
 Accepts the same format specifiers as clibx_printf.
-Returns the number of characters written.
+Returns void. Write failures are not reported to the caller; silent failures occur on syscall errors.
 .SH SUPPORTED SPECIFIERS
 .TS
 allbox tab(:);
@@ -86,6 +86,10 @@ The %n specifier (write count) is not supported for security reasons.
 .TP
 .B Basic %p Implementation
 Pointers are printed in lowercase hex with 0x prefix.
+.TP
+.B NULL String Handling (%s)
+When %s is used with a NULL pointer, no output is produced (unlike standard printf which prints "(null)").
+Caller should ensure non-NULL strings are passed.
 .SH WHY USE CLIBX_PRINT?
 .TP
 .B Minimal Dependencies
@@ -106,20 +110,24 @@ Can be used standalone without clibx.h or other dependencies.
 .SH IMPLEMENTATION DETAILS
 .TP
 .B Linux write() Syscall
-Uses inline x86_64 assembly:
+Uses inline x86_64 assembly with the System V AMD64 ABI:
 .RS
 .nf
-mov $1, %%rax          /* Syscall number for write */
+mov $1, %%rax          /* Syscall number for write(2) */
 syscall                /* Invoke syscall */
 .fi
 .RE
+Register mapping: rdi = fd, rsi = buf, rdx = count. Return value in rax (bytes written or error code).
 .TP
 .B No Buffering
 Each call to clibx_printf or clibx_fprintf immediately invokes write(2).
-No internal buffer is maintained.
+No internal buffer is maintained. Each format specifier results in one or more syscalls.
 .TP
 .B Error Handling
-Returns -1 on write syscall failure. The caller should check the return value.
+The public API does not expose syscall return values. Write failures are silent.
+If write(2) returns an error code (negative value), it is not reported or handled.
+Caller cannot detect write failures or partial writes.
+Passed file descriptors are not validated; invalid fds cause silent write failures.
 .SH EXAMPLE: USING WITH STDERR
 .nf
 #include <clibx_print.h>
@@ -169,13 +177,27 @@ Use clibx_printf when you specifically need direct syscall output
 without stdio buffering or libc overhead. For most applications,
 standard printf is more appropriate and feature-complete.
 .TP
+.B When NOT to Use
+Do not use for production code requiring error handling or reliability.
+As write failures are silent, this is unsuitable for applications that need to detect I/O errors.
+Standard printf or other I/O libraries are recommended for robust I/O.
+.TP
 .B File Descriptors
 Standard file descriptors: 0 = stdin, 1 = stdout, 2 = stderr.
-You can write to any open file descriptor.
+You can write to any open file descriptor (must be already open).
+Invalid or closed file descriptors result in silent failures.
 .TP
 .B Unicode/Multibyte
 No special handling of UTF-8 or multibyte characters.
 Bytes are written directly to the file descriptor.
+.TP
+.B Performance
+Syscall overhead per format specifier may be significant for high-frequency logging.
+Consider buffering or batching output for performance-critical code.
+.TP
+.B Format Specifier Parsing
+Format string is parsed linearly. Invalid format specifiers are printed literally.
+Example: clibx_printf("%q\\n") will print "%q" to output.
 .SH SEE ALSO
 .BR clibx (3),
 .BR clibx_list (3),

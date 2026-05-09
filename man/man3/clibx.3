@@ -16,6 +16,9 @@ the C standard library and is designed with zero external dependencies.
 .B Math Macros
 \- MIN, MAX, CLAMP, ABS, LERP, IS_POWER_OF_2, NEXT_POWER_OF_2
 .TP
+.B Math Functions
+\- clibx_log2, clibx_pow, clibx_ceil, clibx_floor, clibx_round
+.TP
 .B Bitwise Operations
 \- BIT, SET_BIT, CLEAR_BIT, TOGGLE_BIT, CHECK_BIT
 .TP
@@ -35,7 +38,7 @@ the C standard library and is designed with zero external dependencies.
 .TP
 .B Hash Map
 \- String-to-string hash map with DJB2 hashing
-\- hashmap_init, hashmap_put, hashmap_get, hashmap_contains, hashmap_free
+\- hashmap_init, hashmap_hash, hashmap_put, hashmap_get, hashmap_contains, hashmap_free
 .TP
 .B Logging & Error Handling
 \- LOG, ERROR, ASSERT, UNIMPLEMENTED, UNREACHABLE
@@ -80,16 +83,289 @@ typedef struct {
 All memory functions are convenience wrappers around malloc/calloc/free:
 .TP
 .B NEW(type)
-Allocate memory for a single object. Returns pointer or exits on failure.
+Allocate memory for a single object. Returns `NULL` if allocation fails.
 .TP
 .B NEW_ARRAY(type, count)
-Allocate array of given type and count.
+Allocate array of given type and count. Returns `NULL` if allocation fails.
 .TP
 .B NEW_ZEROED(type)
-Allocate and zero-initialize a single object.
+Allocate and zero-initialize a single object. Returns `NULL` if allocation fails.
 .TP
 .B FREE(ptr)
 Free memory and set pointer to NULL (prevents dangling pointers).
+.SH MATH FUNCTIONS
+.TP
+.B double clibx_log2(double x)
+Compute the base-2 logarithm of x. Returns NaN if x <= 0.
+Time complexity: O(1).
+.TP
+.B double clibx_pow(double base, double exp)
+Compute base raised to the power of exp. Only supports integer exponents.
+Returns NaN for fractional exponents.
+Time complexity: O(log exp).
+.TP
+.B double clibx_ceil(double x)
+Return the smallest integer greater than or equal to x.
+Time complexity: O(1).
+.TP
+.B double clibx_floor(double x)
+Return the largest integer less than or equal to x.
+Time complexity: O(1).
+.TP
+.B double clibx_round(double x)
+Round x to the nearest integer.
+Time complexity: O(1).
+.SH HASH MAP FUNCTIONS
+.TP
+.B unsigned long hashmap_hash(str key)
+Compute the DJB2 hash of a string key. This is the internal hash function used by the hash map.
+Time complexity: O(n) where n is the key length.
+.TP
+.B clibx_hashmap hashmap_init(void)
+Create a new empty hashmap with default capacity (64).
+Time complexity: O(1).
+.TP
+.B void hashmap_put(clibx_hashmap *map, str key, str value)
+Insert or update a key-value pair in the hash map.
+Time complexity: O(n) where n is the key length (amortized O(1)).
+.TP
+.B str hashmap_get(clibx_hashmap *map, str key)
+Get value by key. Returns NULL if not found.
+Time complexity: O(n) where n is the key length (amortized O(1)).
+.TP
+.B clibx_bool hashmap_contains(clibx_hashmap *map, str key)
+Check if a key exists in the hash map.
+Time complexity: O(n) where n is the key length (amortized O(1)).
+.TP
+.B void hashmap_free(clibx_hashmap *map)
+Free all memory used by the hash map.
+Time complexity: O(m + n) where m is capacity and n is number of entries.
+.SH ARRAY OPERATIONS
+.TP
+.B size_t ARRAY_SIZE(arr)
+Macro that computes the number of elements in a static array.
+Only works for compile-time stack-allocated arrays, not pointers.
+Time complexity: O(1) at compile time.
+.TP
+.B void print_int_array(const int *arr, size_t len)
+Print an integer array in [a, b, c] format to stdout.
+Time complexity: O(n). Space complexity: O(1).
+.TP
+.B void print_double_array(const double *arr, size_t len)
+Print a floating-point array in [a, b, c] format to stdout.
+Time complexity: O(n). Space complexity: O(1).
+.TP
+.B void print_char_array(const char *arr, size_t len)
+Print a character array in ['a', 'b', 'c'] format to stdout.
+Time complexity: O(n). Space complexity: O(1).
+.SH BITWISE OPERATIONS
+.TP
+.B unsigned long long BIT(x)
+Macro that returns a 64-bit integer with the x-th bit set to 1.
+.TP
+.B void SET_BIT(val, pos)
+Macro that sets the bit at position pos in val.
+Modifies val in-place.
+.TP
+.B void CLEAR_BIT(val, pos)
+Macro that clears the bit at position pos in val.
+Modifies val in-place.
+.TP
+.B void TOGGLE_BIT(val, pos)
+Macro that toggles the bit at position pos in val.
+Modifies val in-place.
+.TP
+.B int CHECK_BIT(val, pos)
+Macro that returns non-zero if bit at position pos is set, zero otherwise.
+.SH STRING OPERATIONS
+.TP
+.B int STREQ(a, b)
+Macro that compares two strings for equality using strcmp.
+Returns non-zero if equal, zero otherwise.
+.TP
+.B int STR_EMPTY(s)
+Macro that checks if string s is empty (first character is '\0').
+Returns non-zero if empty, zero otherwise.
+.TP
+.B int STR_STARTS_WITH(s, prefix)
+Macro that checks if string s starts with the given prefix.
+Returns non-zero if true, zero otherwise.
+.TP
+.B int STR_CONTAINS(haystack, needle)
+Macro that checks if haystack contains needle as a substring.
+Returns non-zero if found, zero otherwise.
+.TP
+.B str strtrim(str s)
+Trim leading and trailing whitespace from a string.
+Returns a newly allocated string. Caller must free the result.
+Time complexity: O(n). Space complexity: O(n).
+.TP
+.B str_vec strsplit(str input, char delim)
+Split a string by delimiter into a string vector.
+Returns a str_vec containing the parts. Caller must free both the vector and individual strings.
+Time complexity: O(n). Space complexity: O(k) where k is number of parts.
+.TP
+.B str strjoin(str *arr, size_t len, str sep)
+Join an array of strings with a separator.
+Returns a newly allocated string. Caller must free the result.
+Time complexity: O(n). Space complexity: O(n).
+.TP
+.B str str_to_lower(str s)
+Convert string to lowercase in-place.
+Returns the same pointer s.
+Time complexity: O(n).
+.TP
+.B str str_to_upper(str s)
+Convert string to uppercase in-place.
+Returns the same pointer s.
+Time complexity: O(n).
+.SH DYNAMIC VECTOR
+.TP
+.B str_vec vec_init(void)
+Initialize an empty string vector.
+Time complexity: O(1). Space complexity: O(1).
+.TP
+.B void vec_push(str_vec *vec, str value)
+Append a string to the vector. Grows capacity dynamically.
+Time complexity: O(1) amortized. Space complexity: O(1) amortized.
+.TP
+.B void vec_free(str_vec *vec)
+Free the vector's internal data. Does NOT free individual strings.
+Time complexity: O(1).
+.SH PATH UTILITIES
+.TP
+.B str path_basename(str path)
+Extract the filename component from a path.
+Returns a newly allocated string. Caller must free.
+Example: "/usr/bin/foo" -> "foo"
+Time complexity: O(n).
+.TP
+.B str path_dirname(str path)
+Extract the directory component from a path.
+Returns a newly allocated string. Caller must free.
+Example: "/usr/bin/foo" -> "/usr/bin"
+Time complexity: O(n).
+.TP
+.B str path_extension(str path)
+Extract the file extension (without dot) from a path.
+Returns a newly allocated string (empty if no extension). Caller must free.
+Example: "file.txt" -> "txt"
+Time complexity: O(n).
+.TP
+.B str path_join(str a, str b)
+Join two path components with '/'.
+Returns a newly allocated string. Caller must free.
+Example: path_join("/usr", "bin") -> "/usr/bin"
+Time complexity: O(n).
+.TP
+.B clibx_bool path_exists(str path)
+Check if a file or directory exists at the given path.
+Returns non-zero if exists, zero otherwise.
+Time complexity: O(1) on most systems.
+.TP
+.B clibx_bool path_is_dir(str path)
+Check if a path is a directory.
+Returns non-zero if true, zero otherwise.
+Time complexity: O(1).
+.TP
+.B clibx_bool path_is_file(str path)
+Check if a path is a regular file.
+Returns non-zero if true, zero otherwise.
+Time complexity: O(1).
+.TP
+.B long path_file_size(str path)
+Get the size in bytes of a file.
+Returns file size on success, -1 on error.
+Time complexity: O(1).
+.SH LOGGING & ERROR HANDLING
+.TP
+.B void LOG(fmt, ...)
+Print a colored log message to stderr with [LOG] prefix in yellow.
+Format specifiers: same as printf.
+Prints to stderr, exits with EXIT_FAILURE on write failure.
+.TP
+.B void ERROR(fmt, ...)
+Print an error message to stderr with [ERROR] prefix in red, including file and line number.
+Format specifiers: same as printf.
+Calls exit(EXIT_FAILURE) immediately.
+.TP
+.B void ASSERT(cond, msg)
+Runtime assertion. If condition is false, calls ERROR with the given message.
+If condition is true, does nothing.
+.TP
+.B void UNIMPLEMENTED(void)
+Macro that calls ERROR indicating code path is not yet implemented.
+Useful for marking stub functions.
+.TP
+.B void UNREACHABLE(void)
+Macro that calls ERROR indicating code path should never be reached.
+Useful in default branches of exhaustive switch statements.
+.SH TYPE INTROSPECTION
+.TP
+.B str TYPE_STR(x)
+Return a string representation of a type for common built-in types.
+Supported: int, long, float, double, char, and others.
+Uses _Generic for compile-time type dispatch.
+.TP
+.B TYPE_NAME(x)
+Macro (GCC/Clang only) that returns the type of x using __typeof__.
+Useful for creating variables with the same type as another variable.
+.TP
+.B str TYPE_FUNC(x)
+Return the pretty function signature for debugging (GCC/Clang only).
+On other compilers, returns "<TYPE_FUNC unavailable: requires GCC/Clang>".
+.TP
+.B void PRINT(x)
+Print a variable to stdout with automatic newline.
+Supports: int, long, float, double, char, char*.
+Uses _Generic to select the appropriate format specifier.
+.SH COMPILER HINTS (GCC/CLANG)
+.TP
+.B int LIKELY(x)
+Branch prediction hint indicating the expression is likely true.
+On non-GCC/Clang compilers, this is a no-op.
+.TP
+.B int UNLIKELY(x)
+Branch prediction hint indicating the expression is likely false.
+On non-GCC/Clang compilers, this is a no-op.
+.TP
+.B void UNUSED(x)
+Suppress compiler warnings about unused variables.
+On all compilers, casts the expression to void.
+.TP
+.B DEPRECATED
+Function attribute (GCC/Clang) that marks a function as deprecated.
+Compiler will warn when the function is used.
+Example: void old_func(void) DEPRECATED;
+.TP
+.B NODISCARD
+Function attribute (GCC/Clang) that warns if the return value is ignored.
+Useful for functions whose return value should not be ignored.
+Example: NODISCARD int might_fail(void);
+.SH LOOP HELPERS
+.TP
+.B for FOR(i, n)
+Macro that expands to: for (size_t i = 0; i < n; i++)
+Convenient loop from 0 to n-1.
+.TP
+.B for FOR_RANGE(i, start, end)
+Macro that expands to: for (size_t i = start; i < end; i++)
+Convenient loop from start to end-1.
+.SH BOOLEAN SUPPORT
+In C99 and later, use standard bool from <stdbool.h>.
+For pre-C99 code, clibx provides:
+.TP
+.B clibx_bool
+Integer type for boolean values (int).
+.TP
+.B clibx_true
+Constant with value 1 (true).
+.TP
+.B clibx_false
+Constant with value 0 (false).
+.TP
+.B void CLIBX_PRINT_BOOL(b)
+Macro that prints a boolean value as "true" or "false" to stdout.
 .SH EXAMPLE
 .nf
 #include <clibx.h>

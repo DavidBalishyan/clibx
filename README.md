@@ -33,7 +33,7 @@ A small, header-only C utility library with common macros and helper functions d
 
 ## Overview
 
-**clibx** provides lightweight, macro-based utilities for common C programming patterns, reducing boilerplate and improving code readability. Everything is header-only with zero dependencies beyond the C standard library.
+**clibx** provides lightweight, macro-based utilities for common C programming patterns, reducing boilerplate and improving code readability. Everything in `clibx.h` is header-only and depends only on the C standard library. `clibx_print.h` is a standalone Linux x86_64 syscall-based output helper.
 
 Features include:
 - Array helpers and printing utilities
@@ -121,11 +121,52 @@ IS_POWER_OF_2(6);   // false
 ```
 
 #### `NEXT_POWER_OF_2(n)`
-Return the next power of two strictly greater than `n`. Requires `<math.h>`.
+Return the next power of two strictly greater than `n`.
 
 ```c
 NEXT_POWER_OF_2(5);   // 8
 NEXT_POWER_OF_2(8);   // 16
+```
+
+#### `clibx_log2(x)`
+Compute the base-2 logarithm of `x`. Returns NaN if `x <= 0`.
+
+```c
+double result = clibx_log2(8);   // result = 3.0
+double result = clibx_log2(1);   // result = 0.0
+```
+
+#### `clibx_pow(base, exp)`
+Compute `base` raised to the power of `exp`. Only supports integer exponents; returns NaN for fractional exponents.
+
+```c
+double result = clibx_pow(2, 8);    // result = 256.0
+double result = clibx_pow(2, -2);   // result = 0.25
+```
+
+#### `clibx_ceil(x)`
+Return the smallest integer greater than or equal to `x`.
+
+```c
+double result = clibx_ceil(4.2);   // result = 5.0
+double result = clibx_ceil(4.0);   // result = 4.0
+```
+
+#### `clibx_floor(x)`
+Return the largest integer less than or equal to `x`.
+
+```c
+double result = clibx_floor(4.8);   // result = 4.0
+double result = clibx_floor(4.0);   // result = 4.0
+```
+
+#### `clibx_round(x)`
+Round `x` to the nearest integer.
+
+```c
+double result = clibx_round(4.2);   // result = 4.0
+double result = clibx_round(4.5);   // result = 5.0
+double result = clibx_round(4.8);   // result = 5.0
 ```
 
 ---
@@ -176,27 +217,36 @@ SWAP(a, b);
 ### Memory Management
 
 #### `NEW(type)`
-Allocate memory for a single variable.
+Allocate memory for a single variable. Returns `NULL` if allocation fails.
 
 ```c
 int *ptr = NEW(int);
+if (ptr == NULL) {
+    // handle allocation failure
+}
 *ptr = 99;
 FREE(ptr);
 ```
 
 #### `NEW_ARRAY(type, count)`
-Allocate memory for an array.
+Allocate memory for an array. Returns `NULL` if allocation fails.
 
 ```c
 int *arr = NEW_ARRAY(int, 100);
+if (arr == NULL) {
+    // handle allocation failure
+}
 FREE(arr);  // Sets arr to NULL after freeing
 ```
 
 #### `NEW_ZEROED(type)`
-Allocate and zero-initialise memory for a single variable using `calloc`.
+Allocate and zero-initialise memory for a single variable using `calloc`. Returns `NULL` if allocation fails.
 
 ```c
-int *ptr = NEW_ZEROED(int);  // *ptr == 0 guaranteed
+int *ptr = NEW_ZEROED(int);
+if (ptr == NULL) {
+    // handle allocation failure
+}
 FREE(ptr);
 ```
 
@@ -562,6 +612,13 @@ typedef struct {
     size_t capacity;
     size_t count;
 } clibx_hashmap;
+```
+
+#### `hashmap_hash(key)`
+Compute the DJB2 hash of a string key. This is the internal hash function used by the hash map.
+
+```c
+unsigned long hash = hashmap_hash("mykey");
 ```
 
 #### `hashmap_init()`
