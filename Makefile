@@ -10,7 +10,29 @@ INSTALL_PROGRAM = $(INSTALL) -m 755
 
 .PHONY: all clean build install install-headers install-man uninstall
 
-all: $(BINDIR) build
+all: help
+
+help:
+	@echo "Usage: make <target>"
+	@echo ""
+	@echo "Targets:"
+	@echo "  all              Default target (shows this help message)"
+	@echo "  help             Show this help message"
+	@echo "  build            Build demo binaries into $(BINDIR)/"
+	@echo "  clean            Remove build directory"
+	@echo "  install          Install headers and manpages"
+	@echo "  reinstall        Reinstall headers and manpages"
+	@echo "  install-headers  Install header files to $(PREFIX)/include/"
+	@echo "  install-man      Install manpages to $(PREFIX)/share/man/man3/"
+	@echo "  uninstall        Remove installed headers and manpages"
+	@echo ""
+	@echo "Variables:"
+	@echo "  PREFIX=$(PREFIX)"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make build"
+	@echo "  sudo make install"
+	@echo "  make PREFIX=/usr install"
 
 $(BINDIR):
 	@mkdir -p $(BINDIR)
@@ -18,7 +40,7 @@ $(BINDIR):
 clean: 
 	rm -rf $(BINDIR)
 
-build:
+build: $(BINDIR)
 	$(CC) main.demo.c -o $(BINDIR)/main.demo $(FLAGS)
 	$(CC) list.demo.c -o $(BINDIR)/list.demo $(FLAGS)
 	$(CC) print.demo.c -o $(BINDIR)/print.demo
@@ -48,3 +70,5 @@ uninstall:
 	rm -f $(PREFIX)/share/man/man3/clibx_list.3
 	rm -f $(PREFIX)/share/man/man3/clibx_print.3
 	@echo "Uninstallation complete!"
+
+reinstall: uninstall install
