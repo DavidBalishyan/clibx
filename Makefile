@@ -1,5 +1,4 @@
 CC = gcc
-FLAGS = -lm
 BINDIR = bin
 SRCDIR = .
 PREFIX ?= /usr/local
@@ -41,8 +40,8 @@ clean:
 	rm -rf $(BINDIR)
 
 build: $(BINDIR)
-	$(CC) main.demo.c -o $(BINDIR)/main.demo $(FLAGS)
-	$(CC) list.demo.c -o $(BINDIR)/list.demo $(FLAGS)
+	$(CC) main.demo.c -o $(BINDIR)/main.demo
+	$(CC) list.demo.c -o $(BINDIR)/list.demo
 	$(CC) print.demo.c -o $(BINDIR)/print.demo
 
 install: install-headers install-man

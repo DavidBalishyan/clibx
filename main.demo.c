@@ -1,4 +1,5 @@
 #include "clibx.h"
+#include <stdio.h>
 
 // Example for NODISCARD
 NODISCARD int must_use_result() {
@@ -22,8 +23,13 @@ int main() {
     print_char_array(carr, ARRAY_SIZE(carr));
     printf("Array size: %zu\n\n", len);
 
-    // MIN / MAX / CLAMP / ABS
+    // Math utils
     int a = 10, b = 20;
+    printf("clibx_log2(16): %f\n", clibx_log2(16));
+    printf("clibx_pow(10, 2): %f\n", clibx_pow(10, 2));
+    printf("clibx_ceil(10.2): %f\n", clibx_ceil(10.5));
+	printf("clibx_round(10.6): %f\n", clibx_round(10.6));
+	printf("clibx_floor(10.9): %f\n", clibx_floor(10.9));
     printf("MIN: %d\n", MIN(a, b));
     printf("MAX: %d\n", MAX(a, b));
     printf("CLAMP(25, 0, 15): %d\n", CLAMP(25, 0, 15));
