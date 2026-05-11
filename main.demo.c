@@ -147,7 +147,7 @@ int main() {
     FREE(trimmed);
 
     str csv = "one,two,three";
-    str_vec parts = strsplit(csv, ',');
+    clibx_str_vec parts = strsplit(csv, ',');
     printf("strsplit(\"%s\", ','): [", csv);
     FOR(i, parts.length) {
         printf("\"%s\"", parts.data[i]);
@@ -170,11 +170,11 @@ int main() {
     FREE(lower);
 
     // DYNAMIC ARRAY (Vec)
-    str_vec vec = vec_init();
+    clibx_str_vec vec = vec_init();
     vec_push(&vec, "first");
     vec_push(&vec, "second");
     vec_push(&vec, "third");
-    printf("str_vec: length=%zu, capacity=%zu\n", vec.length, vec.capacity);
+    printf("clibx_str_vec: length=%zu, capacity=%zu\n", vec.length, vec.capacity);
     FOR(i, vec.length) printf("  vec[%zu] = \"%s\"\n", i, vec.data[i]);
     vec_free(&vec);
     printf("vec freed: length=%zu, capacity=%zu\n\n", vec.length, vec.capacity);

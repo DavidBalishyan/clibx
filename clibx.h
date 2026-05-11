@@ -562,15 +562,15 @@ typedef struct {
     str *data;
     size_t length;
     size_t capacity;
-} str_vec;
+} clibx_str_vec;
 
 /*
  * vec_init
  * --------------------------------------
  * Initialize an empty string vector.
  * */
-static inline str_vec vec_init(void) {
-    return (str_vec){ .data = NULL, .length = 0, .capacity = 0 };
+static inline clibx_str_vec vec_init(void) {
+    return (clibx_str_vec){ .data = NULL, .length = 0, .capacity = 0 };
 }
 
 /*
@@ -578,7 +578,7 @@ static inline str_vec vec_init(void) {
  * --------------------------------------
  * Append a string to the vector.
  * */
-static inline void vec_push(str_vec *vec, str value) {
+static inline void vec_push(clibx_str_vec *vec, str value) {
     if (vec->length >= vec->capacity) {
         size_t new_cap = vec->capacity == 0 ? 8 : vec->capacity * 2;
         vec->data = realloc(vec->data, sizeof(str) * new_cap);
@@ -594,7 +594,7 @@ static inline void vec_push(str_vec *vec, str value) {
  * Free the vector's internal data.
  * Does NOT free individual strings.
  * */
-static inline void vec_free(str_vec *vec) {
+static inline void vec_free(clibx_str_vec *vec) {
     FREE(vec->data);
     vec->length = 0;
     vec->capacity = 0;
@@ -638,8 +638,8 @@ static inline str strtrim(str s) {
  * --------------------------------------
  * Time complexity: O(n)
  * */
-static inline str_vec strsplit(str input, char delim) {
-    str_vec result = vec_init();
+static inline clibx_str_vec strsplit(str input, char delim) {
+    clibx_str_vec result = vec_init();
     char *copy = strdup(input);
     char delim_str[2] = {delim, '\0'};
     char *token = strtok(copy, delim_str);
