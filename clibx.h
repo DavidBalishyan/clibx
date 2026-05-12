@@ -462,10 +462,11 @@ static inline double clibx_round(double x) {
 #define CHECK_BIT(val, pos) (((val) & BIT(pos)) != 0)
 
 //
-// Boolean helpers
+// Booleans
 //
 
 #ifndef __cplusplus
+	#define clibx_isset_boolean
     #define clibx_bool  int
     #define clibx_true  1
     #define clibx_false 0
