@@ -582,7 +582,7 @@ static inline clibx_str_vec vec_init(void) {
 static inline void vec_push(clibx_str_vec *vec, str value) {
     if (vec->length >= vec->capacity) {
         size_t new_cap = vec->capacity == 0 ? 8 : vec->capacity * 2;
-        vec->data = realloc(vec->data, sizeof(str) * new_cap);
+        vec->data = (str *)realloc(vec->data, sizeof(str) * new_cap);
         ASSERT(vec->data != NULL, "vec_push: realloc failed");
         vec->capacity = new_cap;
     }
